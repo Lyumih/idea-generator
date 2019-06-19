@@ -8,7 +8,7 @@
       </v-toolbar-title>
     </v-toolbar>
 
-    <v-navigation-drawer app clipped v-model="drawer" permanent >
+    <v-navigation-drawer app clipped v-model="drawer" permanent>
       <v-text-field
         type="text"
         label="Добавить ещё идею"
@@ -22,7 +22,12 @@
         <v-subheader>Идеи</v-subheader>
         <v-list-tile v-for="(todo, index) in todos" :key="index">
           <v-list-tile-action>
-            <v-checkbox :value="todo" :label="todo" v-model="todosChecked"></v-checkbox>
+            <v-checkbox
+              :value="todo"
+              :label="todo"
+              v-model="todosChecked"
+              @change="saveInLocaleStorage"
+            ></v-checkbox>
           </v-list-tile-action>
           <v-spacer></v-spacer>
           <v-list-tile-action>
@@ -57,16 +62,16 @@ export default {
     return {
       drawer: true,
       newItem: "",
-      todos: ["Инструменты", "Фильтры", "Нейросети"],
-      todosChecked: []
+      todos: localStorage.getItem("todos")
+        ? JSON.parse(localStorage.getItem("todos"))
+        : ["Инструменты", "Фильтры", "Нейросети"],
+      todosChecked: localStorage.getItem("todosChecked")
+        ? JSON.parse(localStorage.getItem("todosChecked"))
+        : []
     };
   },
   computed: {
     filtredTodo() {
-      // let filtred = this.todos.filter(element => {
-      //   return this.todosChecked.includes(element);
-      // });
-
       let concated = [];
       this.todosChecked.forEach(first => {
         concated.push(first);
@@ -85,6 +90,7 @@ export default {
     addTodo() {
       this.todos.push(this.newItem);
       this.newItem = "";
+      this.saveInLocaleStorage();
     },
     removeTodo(index) {
       if (this.todosChecked.includes(this.todos[index])) {
@@ -94,6 +100,11 @@ export default {
         );
       }
       this.todos.splice(index, 1);
+      this.saveInLocaleStorage();
+    },
+    saveInLocaleStorage() {
+      localStorage.setItem("todos", JSON.stringify(this.todos));
+      localStorage.setItem("todosChecked", JSON.stringify(this.todosChecked));
     }
   }
 };
