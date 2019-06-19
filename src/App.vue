@@ -1,28 +1,100 @@
 <template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+  <v-app>
+    <v-toolbar color="primary" app dark clipped-left>
+      <v-toolbar-side-icon></v-toolbar-side-icon>
+
+      <v-toolbar-title class="headline text-uppercase">
+        <span>ГЕНЕРАТОР ИДЕЙ</span>
+      </v-toolbar-title>
+    </v-toolbar>
+
+    <v-navigation-drawer app clipped v-model="drawer" permanent >
+      <v-text-field
+        type="text"
+        label="Добавить ещё идею"
+        v-model="newItem"
+        box
+        append-icon="send"
+        @click:append="addTodo"
+      ></v-text-field>
+
+      <v-list subheader>
+        <v-subheader>Идеи</v-subheader>
+        <v-list-tile v-for="(todo, index) in todos" :key="index">
+          <v-list-tile-action>
+            <v-checkbox :value="todo" :label="todo" v-model="todosChecked"></v-checkbox>
+          </v-list-tile-action>
+          <v-spacer></v-spacer>
+          <v-list-tile-action>
+            <v-btn icon @click="removeTodo(index)">
+              <v-icon>clear</v-icon>
+            </v-btn>
+          </v-list-tile-action>
+        </v-list-tile>
+      </v-list>
+    </v-navigation-drawer>
+
+    <v-content>
+      <v-list subheader>
+        <v-subheader>В поисках интересных комбинаций</v-subheader>
+
+        <v-list-tile v-for="(todo, index) in filtredTodo" :key="index">
+          <v-list-tile-content>
+            <v-list-tile-title>{{ todo }}</v-list-tile-title>
+          </v-list-tile-content>
+        </v-list-tile>
+
+        <v-divider/>
+      </v-list>
+    </v-content>
+  </v-app>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
-
 export default {
-  name: 'app',
-  components: {
-    HelloWorld
-  }
-}
-</script>
+  name: "App",
+  data() {
+    return {
+      drawer: true,
+      newItem: "",
+      todos: ["Инструменты", "Фильтры", "Нейросети"],
+      todosChecked: []
+    };
+  },
+  computed: {
+    filtredTodo() {
+      // let filtred = this.todos.filter(element => {
+      //   return this.todosChecked.includes(element);
+      // });
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
-</style>
+      let concated = [];
+      this.todosChecked.forEach(first => {
+        concated.push(first);
+        this.todosChecked.forEach(second => {
+          if (first !== second) {
+            if (!concated.includes(second + " + " + first)) {
+              concated.push(first + " + " + second);
+            }
+          }
+        });
+      });
+      return concated;
+    }
+  },
+  methods: {
+    addTodo() {
+      this.todos.push(this.newItem);
+      this.newItem = "";
+    },
+    removeTodo(index) {
+      if (this.todosChecked.includes(this.todos[index])) {
+        this.todosChecked.splice(
+          this.todosChecked.indexOf(this.todos[index]),
+          1
+        );
+      }
+      this.todos.splice(index, 1);
+    }
+  }
+};
+</script>
