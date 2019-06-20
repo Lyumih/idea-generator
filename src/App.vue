@@ -19,7 +19,7 @@
       ></v-text-field>
 
       <v-list subheader>
-        <v-subheader>Идеи</v-subheader>
+        <v-subheader>Идеи. Использовать следующие:</v-subheader>
         <v-list-tile v-for="(todo, index) in todos" :key="index">
           <v-list-tile-action>
             <v-checkbox
@@ -40,17 +40,25 @@
     </v-navigation-drawer>
 
     <v-content>
-      <v-list subheader>
-        <v-subheader>В поисках интересных комбинаций</v-subheader>
+      <template>
+        <v-expansion-panel expand v-model="panel" popout class="pa-4">
+          <template v-for="(todo, index) in filtredTodo">
+            <v-expansion-panel-content v-bind:key="index" class="blue lighten-4">
+              <template v-slot:header>
+                <div>Элементов: {{index + 1}}</div>
+              </template>
 
-        <v-list-tile v-for="(todo, index) in filtredTodo" :key="index">
-          <v-list-tile-content>
-            <v-list-tile-title>{{ todo }}</v-list-tile-title>
-          </v-list-tile-content>
-        </v-list-tile>
-
-        <v-divider/>
-      </v-list>
+              <v-card>
+                <v-card-text
+                  class="grey lighten-3"
+                  v-for="(subtodo, subindex) in todo"
+                  v-bind:key="index+ '-'+subindex"
+                >{{ subtodo.join(" + ")}}</v-card-text>
+              </v-card>
+            </v-expansion-panel-content>
+          </template>
+        </v-expansion-panel>
+      </template>
     </v-content>
   </v-app>
 </template>
@@ -61,6 +69,7 @@ export default {
   data() {
     return {
       drawer: true,
+      panel: [false, true, true, true],
       newItem: "",
       todos: localStorage.getItem("todos")
         ? JSON.parse(localStorage.getItem("todos"))
@@ -72,23 +81,17 @@ export default {
   },
   computed: {
     filtredTodo() {
-      let concated = [];
-      this.todosChecked.forEach(first => {
-        concated.push(first);
-        this.todosChecked.forEach(second => {
-          if (first !== second) {
-            if (!concated.includes(second + " + " + first)) {
-              concated.push(first + " + " + second);
-            }
-          }
-        });
-      });
-      return concated;
+      let temp = [];
+      for (let step = 0; step < this.todosChecked.length; step++) {
+        temp.push(this.permute(this.todosChecked, step));
+      }
+      return temp;
     }
   },
   methods: {
     addTodo() {
       this.todos.push(this.newItem);
+      this.todosChecked.push(this.newItem);
       this.newItem = "";
       this.saveInLocaleStorage();
     },
@@ -105,6 +108,29 @@ export default {
     saveInLocaleStorage() {
       localStorage.setItem("todos", JSON.stringify(this.todos));
       localStorage.setItem("todosChecked", JSON.stringify(this.todosChecked));
+    },
+    permute(args, maxElems) {
+      var result = [];
+      maxElems--;
+      if (maxElems < 0) {
+        for (let s of args) {
+          result.push([s]);
+        }
+        return result;
+      }
+
+      for (var i = 0; i < args.length - maxElems; i++) {
+        for (var j = i + 1; j + maxElems < args.length; j++) {
+          var temp = [];
+          temp.push(args[i]);
+          temp.push(args[j]);
+          for (var k = 1; k <= maxElems; k++) {
+            temp.push(args[j + k]);
+          }
+          result.push(temp);
+        }
+      }
+      return result;
     }
   }
 };
